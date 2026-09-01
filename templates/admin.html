@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}<div class="eyebrow">ADMINISTRATORIUS</div><h1>Valdymo skydas</h1>
+<div class="stats"><div><b>{{trainings|length}}</b><small>Treniruotės</small></div><div><b>{{players|length}}</b><small>Žaidėjai</small></div></div>
+<div class="box"><h2>Pridėti treniruotę</h2><form method="post" action="{{url_for('create')}}" class="form">
+<label>Pavadinimas<input name="title" required></label><div class="two"><label>Data<input type="date" name="date" required></label><label>Laikas<input type="time" name="time" required></label></div>
+<div class="two"><label>Vieta<input name="location" required></label><label>Vietų skaičius<input type="number" name="capacity" value="1" min="1" required></label></div>
+<label>Aprašymas<textarea name="description"></textarea></label><button class="btn">+ Sukurti</button></form></div>
+<h2>Treniruotės</h2><div class="table"><table><tr><th>Data</th><th>Pavadinimas</th><th>Vieta</th><th>Vietos</th><th></th></tr>
+{% for t in trainings %}<tr><td>{{t.date}} {{t.time}}</td><td>{{t.title}}</td><td>{{t.location}}</td><td>{{t.booked}}/{{t.capacity}}</td><td><form method="post" action="{{url_for('delete',tid=t.id)}}"><button class="text-danger">Trinti</button></form></td></tr>{% endfor %}</table></div>
+<h2>Žaidėjai</h2><div class="table"><table><tr><th>Vardas</th><th>El. paštas</th></tr>{% for p in players %}<tr><td>{{p.name}}</td><td>{{p.email}}</td></tr>{% endfor %}</table></div>
+{% endblock %}

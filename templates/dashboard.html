@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block content %}<div class="eyebrow">MANO PASKYRA</div><h1>Mano registracijos</h1>
+<div class="grid">{% for b in bookings %}<article class="card"><div class="date">{{b.date}} · {{b.time}}</div><h3>{{b.title}}</h3><p>📍 {{b.location}}</p>
+{% if b.status=='confirmed' %}<span class="tag">PATVIRTINTA</span><form method="post" action="{{url_for('cancel',bid=b.id)}}" onsubmit="return confirm('Atšaukti registraciją?')"><button class="btn danger sm">Atšaukti</button></form>{% else %}<span class="tag cancelled">ATŠAUKTA</span>{% endif %}</article>
+{% else %}<div class="empty">Registracijų nėra. <a href="{{url_for('home')}}">Rasti treniruotę</a></div>{% endfor %}</div>{% endblock %}

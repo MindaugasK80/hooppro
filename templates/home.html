@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block content %}
+<section class="hero"><div><div class="eyebrow">INDIVIDUALIOS KREPŠINIO TRENIRUOTĖS</div>
+<h1>Tavo žaidimas.<br><span>Tavo progresas.</span></h1>
+<p>Rezervuok treniruotę, pasirink patogų laiką ir kryptingai tobulink savo krepšinio įgūdžius.</p>
+<a class="btn" href="#schedule">Peržiūrėti treniruotes →</a></div>
+<div class="ball">🏀<b>1:1</b><small>individualus dėmesys</small></div></section>
+<section id="schedule"><div class="section-head"><div><div class="eyebrow">TVARKARAŠTIS</div><h2>Artimiausios treniruotės</h2></div></div>
+<div class="grid">{% for t in trainings %}<article class="card">
+<div class="date">{{t.date}} · {{t.time}}</div><h3>{{t.title}}</h3><p>📍 {{t.location}}</p><p>{{t.description}}</p>
+<div class="bottom"><strong>{{t.booked}} / {{t.capacity}} vietų</strong>{% if t.booked<t.capacity %}
+{% if current_user %}<form method="post" action="{{url_for('book',tid=t.id)}}"><button class="btn sm">Registruotis</button></form>
+{% else %}<a class="btn sm" href="{{url_for('login')}}">Registruotis</a>{% endif %}
+{% else %}<span class="full">Užpildyta</span>{% endif %}</div></article>
+{% endfor %}</div></section>
+{% endblock %}
