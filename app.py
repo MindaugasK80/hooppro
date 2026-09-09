@@ -171,6 +171,7 @@ def delete(tid):
     c=db(); c.execute("DELETE FROM bookings WHERE training_id=?",(tid,)); c.execute("DELETE FROM trainings WHERE id=?",(tid,))
     c.commit(); c.close(); flash("Treniruotė ištrinta.","success"); return redirect(url_for("admin"))
 
+init_db()
+
 if __name__=="__main__":
-    init_db()
     app.run(debug=True,host="127.0.0.1",port=5000)
