@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
-import psycopg
-from psycopg.rows import dict_row
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 app = Flask(__name__)
@@ -11,13 +11,13 @@ app.secret_key = os.environ.get("SECRET_KEY", "hooppro-demo-change-me")
 
 
 def db():
-   def db():
     database_url = os.environ.get("DATABASE_URL")
 
     if not database_url:
         raise RuntimeError("DATABASE_URL aplinkos kintamasis nerastas.")
 
-    return psycopg.connect(database_url, row_factory=dict_row)
+    return psycopg2.connect(database_url)
+
 
 def init_db():
     c = db()
@@ -76,7 +76,7 @@ def init_db():
             )
         )
 
-    cur.execute("SELECT COUNT(*) AS n FROM trainings")
+    cur.execute("SELECT COUNT(*) FROM trainings")
     count = cur.fetchone()[0]
 
     if count == 0:
@@ -127,8 +127,8 @@ def user():
         return None
 
     c = db()
-    row_factory=dict_row
-    
+    cur = c.cursor(cursor_factory=RealDictCursor)
+
     cur.execute(
         "SELECT * FROM users WHERE id = %s",
         (session["uid"],)
@@ -182,7 +182,7 @@ def ctx():
 @app.route("/")
 def home():
     c = db()
-    cur = c.cursor()
+    cur = c.cursor(cursor_factory=RealDictCursor)
 
     cur.execute("""
         SELECT
@@ -237,7 +237,7 @@ def register():
 
             c.commit()
 
-        except psycopg.errors.UniqueViolation:
+        except psycopg2.errors.UniqueViolation:
             c.rollback()
             cur.close()
             c.close()
@@ -266,7 +266,7 @@ def register():
 def login():
     if request.method == "POST":
         c = db()
-        cur = c.cursor(row_factory=dict_row)
+        cur = c.cursor(cursor_factory=RealDictCursor)
 
         cur.execute(
             "SELECT * FROM users WHERE email = %s",
@@ -309,7 +309,7 @@ def logout():
 @login_required
 def book(tid):
     c = db()
-    cur = c.cursor(row_factory=dict_row)
+    cur = c.cursor(cursor_factory=RealDictCursor)
 
     current_user = user()
 
@@ -349,22 +349,13 @@ def book(tid):
     exists = cur.fetchone()
 
     if not t:
-        flash(
-            "Treniruotė nerasta.",
-            "danger"
-        )
+        flash("Treniruotė nerasta.", "danger")
 
     elif exists:
-        flash(
-            "Jūs jau užsiregistravote.",
-            "warning"
-        )
+        flash("Jūs jau užsiregistravote.", "warning")
 
     elif count >= t["capacity"]:
-        flash(
-            "Laisvų vietų nebėra.",
-            "danger"
-        )
+        flash("Laisvų vietų nebėra.", "danger")
 
     else:
         try:
@@ -386,7 +377,7 @@ def book(tid):
                 "success"
             )
 
-        except psycopg.IntegrityError:
+        except psycopg2.IntegrityError:
             c.rollback()
 
             flash(
@@ -404,7 +395,7 @@ def book(tid):
 @login_required
 def dashboard():
     c = db()
-    cur = c.cursor(row_factory=dict_row)
+    cur = c.cursor(cursor_factory=RealDictCursor)
 
     current_user = user()
 
@@ -477,7 +468,7 @@ def cancel(bid):
 @admin_required
 def admin():
     c = db()
-    cur = c.cursor(row_factory=dict_row)
+    cur = c.cursor(cursor_factory=RealDictCursor)
 
     cur.execute(
         """
@@ -589,7 +580,6 @@ def delete(tid):
     return redirect(url_for("admin"))
 
 
-# Sukuriame PostgreSQL lenteles paleidžiant programą.
 init_db()
 
 
