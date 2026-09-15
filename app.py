@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg
+from psycopg.rows import dict_row
 
 
 app = Flask(__name__)
@@ -11,13 +11,13 @@ app.secret_key = os.environ.get("SECRET_KEY", "hooppro-demo-change-me")
 
 
 def db():
+   def db():
     database_url = os.environ.get("DATABASE_URL")
 
     if not database_url:
         raise RuntimeError("DATABASE_URL aplinkos kintamasis nerastas.")
 
-    return psycopg2.connect(database_url)
-
+    return psycopg.connect(database_url, row_factory=dict_row)
 
 def init_db():
     c = db()
@@ -127,8 +127,8 @@ def user():
         return None
 
     c = db()
-    cur = c.cursor(cursor_factory=RealDictCursor)
-
+    row_factory=dict_row
+    
     cur.execute(
         "SELECT * FROM users WHERE id = %s",
         (session["uid"],)
@@ -182,7 +182,7 @@ def ctx():
 @app.route("/")
 def home():
     c = db()
-    cur = c.cursor(cursor_factory=RealDictCursor)
+    cur = c.cursor()
 
     cur.execute("""
         SELECT
@@ -237,7 +237,7 @@ def register():
 
             c.commit()
 
-        except psycopg2.errors.UniqueViolation:
+        except psycopg.errors.UniqueViolation:
             c.rollback()
             cur.close()
             c.close()
@@ -266,7 +266,7 @@ def register():
 def login():
     if request.method == "POST":
         c = db()
-        cur = c.cursor(cursor_factory=RealDictCursor)
+        cur = c.cursor(row_factory=dict_row)
 
         cur.execute(
             "SELECT * FROM users WHERE email = %s",
@@ -309,7 +309,7 @@ def logout():
 @login_required
 def book(tid):
     c = db()
-    cur = c.cursor(cursor_factory=RealDictCursor)
+    cur = c.cursor(row_factory=dict_row)
 
     current_user = user()
 
@@ -386,7 +386,7 @@ def book(tid):
                 "success"
             )
 
-        except psycopg2.IntegrityError:
+        except psycopg.IntegrityError:
             c.rollback()
 
             flash(
@@ -404,7 +404,7 @@ def book(tid):
 @login_required
 def dashboard():
     c = db()
-    cur = c.cursor(cursor_factory=RealDictCursor)
+    cur = c.cursor(row_factory=dict_row)
 
     current_user = user()
 
@@ -477,7 +477,7 @@ def cancel(bid):
 @admin_required
 def admin():
     c = db()
-    cur = c.cursor(cursor_factory=RealDictCursor)
+    cur = c.cursor(row_factory=dict_row)
 
     cur.execute(
         """
